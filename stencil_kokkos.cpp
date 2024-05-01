@@ -19,14 +19,14 @@ using namespace cv;
 
 // passage de double à float
 
-void stencil(Mat image,Mat tmp_image,
-                int nx,int ny,int height,int width);
+inline uchar Clamp(int n)
+{
+    n = n>255 ? 255 : n;
+    return n<0 ? 0 : n;
+}
 
-void stencil(Mat image,Mat tmp_image,
-                int nx,int ny,int height,int width);//à changer plus bas
+void stencil(Mat &image,Mat &tmp_image, int nx,int ny);
 
-void stencil(Mat image,string filename,
-                int nx,int ny,int height,int width);
 double wtime(void);
 
 int main(int argc, char** argv)
@@ -69,36 +69,56 @@ int main(int argc, char** argv)
   printf("------------------------------------\n");
 
   output_image(OUTPUT_FILE, nx, ny, width, height, image);
-  delete(image);
-  delete(tmp_image);
+  image.delete();
+  tmp_image.delete();
   return EXIT_SUCCESS;
 }
 
-void stencil(const int nx, const int ny, const int width, const int height,
-             Mat image, Mat tmp_image)
+void stencil(const int nx, const int ny, Mat &image, Mat &tmp_image)
 {
+  Vec3b Source_Pixel;
+  Vec3b &Des_Pixel;
   for (int i = 1; i < nx + 1; ++i)
   {
     for (int j = 1; j < ny + 1; ++j)
     {
+
+      /* OLD C 
+        
       tmp_image[j + i * height] = image[j + i * height] * 0.6f
         + (image[j + (i - 1) * height]
         + image[j + (i + 1) * height]
         + image[j - 1 + i * height]
         + image[j + 1 + i * height]) * 0.1f;
+        */
+
+      Vec3b Source_Pixel1= mSrc.at<Vec3b>(i-1,j);
+      Vec3b Source_Pixel2= mSrc.at<Vec3b>(i,j-1);
+      Vec3b Source_Pixel3= mSrc.at<Vec3b>(i,j);
+      Vec3b Source_Pixel4= mSrc.at<Vec3b>(i,j+1);
+      Vec3b Source_Pixel5= mSrc.at<Vec3b>(i+1,j);
+
+      Vec3b &Des_Pixel= mDst.at<Vec3b>(i,j);
+      for (int i = 0; k < 3; i++)
+      {
+          int Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
+          Des_Pixel.val[i] = Clamp(Dest_Pixel_value);
+      }
+
+
     }
   }
 }
 
 // Read image from the path, output values in other parameters 
 void read_image(const char* path, 
-int* nx, int* ny, int* width, int* height, Mat image, Mat tmp_image){
+int* nx, int* ny, int* width, int* height, Mat &image, Mat tmp_image){
 
 }
 
-// Init a basic checkboard image 
+// Init a basic checkboard image # TODO A CHANGER EN CPP
 void init_image(const int nx, const int ny, const int width, const int height,
-                Mat image, Mat tmp_image)
+                Mat &image, Mat &tmp_image)
 {
   // Zero everything
   // Bordures à zero également 
