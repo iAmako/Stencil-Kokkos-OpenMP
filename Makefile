@@ -117,6 +117,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named stencil_base.exe
+
+# Build rule for target.
+stencil_base.exe: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 stencil_base.exe
+.PHONY : stencil_base.exe
+
+# fast build rule for target.
+stencil_base.exe/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_base.exe.dir/build.make CMakeFiles/stencil_base.exe.dir/build
+.PHONY : stencil_base.exe/fast
+
+#=============================================================================
 # Target rules for targets named stencil_kokkos.exe
 
 # Build rule for target.
@@ -128,6 +141,43 @@ stencil_kokkos.exe: cmake_check_build_system
 stencil_kokkos.exe/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos.exe.dir/build.make CMakeFiles/stencil_kokkos.exe.dir/build
 .PHONY : stencil_kokkos.exe/fast
+
+#=============================================================================
+# Target rules for targets named stencil_omp.exe
+
+# Build rule for target.
+stencil_omp.exe: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 stencil_omp.exe
+.PHONY : stencil_omp.exe
+
+# fast build rule for target.
+stencil_omp.exe/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_omp.exe.dir/build.make CMakeFiles/stencil_omp.exe.dir/build
+.PHONY : stencil_omp.exe/fast
+
+stencil_base.o: stencil_base.cpp.o
+.PHONY : stencil_base.o
+
+# target to build an object file
+stencil_base.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_base.exe.dir/build.make CMakeFiles/stencil_base.exe.dir/stencil_base.cpp.o
+.PHONY : stencil_base.cpp.o
+
+stencil_base.i: stencil_base.cpp.i
+.PHONY : stencil_base.i
+
+# target to preprocess a source file
+stencil_base.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_base.exe.dir/build.make CMakeFiles/stencil_base.exe.dir/stencil_base.cpp.i
+.PHONY : stencil_base.cpp.i
+
+stencil_base.s: stencil_base.cpp.s
+.PHONY : stencil_base.s
+
+# target to generate assembly for a file
+stencil_base.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_base.exe.dir/build.make CMakeFiles/stencil_base.exe.dir/stencil_base.cpp.s
+.PHONY : stencil_base.cpp.s
 
 stencil_kokkos.o: stencil_kokkos.cpp.o
 .PHONY : stencil_kokkos.o
@@ -153,6 +203,30 @@ stencil_kokkos.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos.exe.dir/build.make CMakeFiles/stencil_kokkos.exe.dir/stencil_kokkos.cpp.s
 .PHONY : stencil_kokkos.cpp.s
 
+stencil_omp.o: stencil_omp.cpp.o
+.PHONY : stencil_omp.o
+
+# target to build an object file
+stencil_omp.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_omp.exe.dir/build.make CMakeFiles/stencil_omp.exe.dir/stencil_omp.cpp.o
+.PHONY : stencil_omp.cpp.o
+
+stencil_omp.i: stencil_omp.cpp.i
+.PHONY : stencil_omp.i
+
+# target to preprocess a source file
+stencil_omp.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_omp.exe.dir/build.make CMakeFiles/stencil_omp.exe.dir/stencil_omp.cpp.i
+.PHONY : stencil_omp.cpp.i
+
+stencil_omp.s: stencil_omp.cpp.s
+.PHONY : stencil_omp.s
+
+# target to generate assembly for a file
+stencil_omp.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_omp.exe.dir/build.make CMakeFiles/stencil_omp.exe.dir/stencil_omp.cpp.s
+.PHONY : stencil_omp.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -161,10 +235,18 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... stencil_base.exe"
 	@echo "... stencil_kokkos.exe"
+	@echo "... stencil_omp.exe"
+	@echo "... stencil_base.o"
+	@echo "... stencil_base.i"
+	@echo "... stencil_base.s"
 	@echo "... stencil_kokkos.o"
 	@echo "... stencil_kokkos.i"
 	@echo "... stencil_kokkos.s"
+	@echo "... stencil_omp.o"
+	@echo "... stencil_omp.i"
+	@echo "... stencil_omp.s"
 .PHONY : help
 
 
