@@ -1,2 +1,6 @@
 /.vscode
 /obj
+CMakeFiles
+*.exe
+CMakeCache.txt
+cmake_install.cmake

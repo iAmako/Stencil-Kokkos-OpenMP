@@ -1,4 +1,4 @@
-#include "gaussianNoise.h"
+#include "gaussianNoise.hpp"
 inline uchar Clamp(int n)
 {
     n = n>255 ? 255 : n;

@@ -24,19 +24,19 @@ inline uchar Clamp(int n)
 void stencil(const int width, const int height, Mat &image, Mat &tmp_image)
 {
   Vec3b Source_Pixel;
-  Vec3b &Des_Pixel;
+  Vec3b Des_Pixel;
   for (int i = 1; i < width + 1; ++i)
   {
     for (int j = 1; j < height + 1; ++j)
     {
-      Vec3b Source_Pixel1= mSrc.at<Vec3b>(i-1,j);
-      Vec3b Source_Pixel2= mSrc.at<Vec3b>(i,j-1);
-      Vec3b Source_Pixel3= mSrc.at<Vec3b>(i,j);
-      Vec3b Source_Pixel4= mSrc.at<Vec3b>(i,j+1);
-      Vec3b Source_Pixel5= mSrc.at<Vec3b>(i+1,j);
+      Vec3b Source_Pixel1= image.at<Vec3b>(i-1,j);
+      Vec3b Source_Pixel2= image.at<Vec3b>(i,j-1);
+      Vec3b Source_Pixel3= image.at<Vec3b>(i,j);
+      Vec3b Source_Pixel4= image.at<Vec3b>(i,j+1);
+      Vec3b Source_Pixel5= image.at<Vec3b>(i+1,j);
 
-      Vec3b &Des_Pixel= mDst.at<Vec3b>(i,j);
-      for (int i = 0; k < 3; i++)
+      Vec3b &Des_Pixel= tmp_image.at<Vec3b>(i,j);
+      for (int k = 0; k < 3; k++)
       {
           int Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
           Des_Pixel.val[i] = Clamp(Dest_Pixel_value);
@@ -49,7 +49,7 @@ void stencil(const int width, const int height, Mat &image, Mat &tmp_image)
 int main(int argc, char** argv)
 {
   CommandLineParser parser(argc, argv,
-                              "{@input   |image/lena.jpg|input image}");
+                              "{@input   |img/lena.jpg|input image}");
   parser.printMessage();
 
   String imageName = parser.get<String>("@input");
@@ -120,8 +120,10 @@ int main(int argc, char** argv)
     
     std::cout << "Image successfully written to output_image.jpg" << std::endl;
     
-  image.delete();
-  image_w_border.delete();
-  tmp_image.delete();
+    /*
+    delete(image);
+    delete(image_w_border);
+    delete(tmp_image);
+    */
   return 0;
 }
