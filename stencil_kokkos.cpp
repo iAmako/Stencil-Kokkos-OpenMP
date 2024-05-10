@@ -25,22 +25,31 @@ void stencil(const int width, const int height, Mat &image, Mat &tmp_image)
 {
   Vec3b Source_Pixel;
   Vec3b Des_Pixel;
+  int Dest_Pixel_value;
+
   for (int i = 1; i < width + 1; ++i)
   {
+    
+
     for (int j = 1; j < height + 1; ++j)
     {
-      Vec3b Source_Pixel1= image.at<Vec3b>(i-1,j);
-      Vec3b Source_Pixel2= image.at<Vec3b>(i,j-1);
-      Vec3b Source_Pixel3= image.at<Vec3b>(i,j);
-      Vec3b Source_Pixel4= image.at<Vec3b>(i,j+1);
-      Vec3b Source_Pixel5= image.at<Vec3b>(i+1,j);
 
-      Vec3b &Des_Pixel= tmp_image.at<Vec3b>(i,j);
+      Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
+      Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
+      Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
+      Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
+      Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
+      
       for (int k = 0; k < 3; k++)
       {
-          int Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
-          Des_Pixel.val[i] = Clamp(Dest_Pixel_value);
+          Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
+          Des_Pixel[k] = Clamp(Dest_Pixel_value);
+          //if(i % 10 == 0) std::cout << Dest_Pixel_value << " " << Des_Pixel[k] << std::endl;
+          
       }
+      tmp_image.at<Vec3b>(i,j) = Des_Pixel;
+
+      //if(i % 10 == 0) std::cout << tmp_image.at<Vec3b>(i,j) << std::endl;
     }
   }
 }
@@ -83,14 +92,15 @@ int main(int argc, char** argv)
   // Create a buffer image with the specified dimensions, filled with zeros
   Mat tmp_image(height, width, image.type(), cv::Scalar(0, 0, 0));
 
-
   // Stencil
   // Start measuring time
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i < NITERS; ++i)
     {
-    stencil(width, height, image, tmp_image);
-    stencil(width, height, tmp_image, image);
+    stencil(ny, nx, image_w_border, tmp_image);
+
+    stencil(ny, nx, tmp_image, image_w_border);
+
   }
   // Stop measuring time
   auto end = std::chrono::high_resolution_clock::now();
@@ -103,7 +113,7 @@ int main(int argc, char** argv)
   std::cout << "Execution time: " << duration.count() << " milliseconds" << std::endl;
   cout << "------------------------------------"<< std::endl;
 
-  // Retire le contour extérieur qu'on a ajotué de l'image 
+  // Retire le contour extérieur qu'on a ajouté de l'image 
   // Define the ROI coordinates to exclude the outer layer
   cv::Rect roi_rect(1, 1, image_w_border.cols - 2, image_w_border.rows - 2);
 

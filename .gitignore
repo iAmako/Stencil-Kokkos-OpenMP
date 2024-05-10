@@ -4,3 +4,4 @@ CMakeFiles
 *.exe
 CMakeCache.txt
 cmake_install.cmake
+output_image.jpg
