@@ -130,17 +130,30 @@ stencil_base.exe/fast:
 .PHONY : stencil_base.exe/fast
 
 #=============================================================================
-# Target rules for targets named stencil_kokkos.exe
+# Target rules for targets named stencil_kokkos_cpu.exe
 
 # Build rule for target.
-stencil_kokkos.exe: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 stencil_kokkos.exe
-.PHONY : stencil_kokkos.exe
+stencil_kokkos_cpu.exe: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 stencil_kokkos_cpu.exe
+.PHONY : stencil_kokkos_cpu.exe
 
 # fast build rule for target.
-stencil_kokkos.exe/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos.exe.dir/build.make CMakeFiles/stencil_kokkos.exe.dir/build
-.PHONY : stencil_kokkos.exe/fast
+stencil_kokkos_cpu.exe/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_cpu.exe.dir/build.make CMakeFiles/stencil_kokkos_cpu.exe.dir/build
+.PHONY : stencil_kokkos_cpu.exe/fast
+
+#=============================================================================
+# Target rules for targets named stencil_kokkos_gpu.exe
+
+# Build rule for target.
+stencil_kokkos_gpu.exe: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 stencil_kokkos_gpu.exe
+.PHONY : stencil_kokkos_gpu.exe
+
+# fast build rule for target.
+stencil_kokkos_gpu.exe/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_gpu.exe.dir/build.make CMakeFiles/stencil_kokkos_gpu.exe.dir/build
+.PHONY : stencil_kokkos_gpu.exe/fast
 
 #=============================================================================
 # Target rules for targets named stencil_omp.exe
@@ -179,29 +192,53 @@ stencil_base.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_base.exe.dir/build.make CMakeFiles/stencil_base.exe.dir/stencil_base.cpp.s
 .PHONY : stencil_base.cpp.s
 
-stencil_kokkos.o: stencil_kokkos.cpp.o
-.PHONY : stencil_kokkos.o
+stencil_kokkos_cpu.o: stencil_kokkos_cpu.cpp.o
+.PHONY : stencil_kokkos_cpu.o
 
 # target to build an object file
-stencil_kokkos.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos.exe.dir/build.make CMakeFiles/stencil_kokkos.exe.dir/stencil_kokkos.cpp.o
-.PHONY : stencil_kokkos.cpp.o
+stencil_kokkos_cpu.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_cpu.exe.dir/build.make CMakeFiles/stencil_kokkos_cpu.exe.dir/stencil_kokkos_cpu.cpp.o
+.PHONY : stencil_kokkos_cpu.cpp.o
 
-stencil_kokkos.i: stencil_kokkos.cpp.i
-.PHONY : stencil_kokkos.i
+stencil_kokkos_cpu.i: stencil_kokkos_cpu.cpp.i
+.PHONY : stencil_kokkos_cpu.i
 
 # target to preprocess a source file
-stencil_kokkos.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos.exe.dir/build.make CMakeFiles/stencil_kokkos.exe.dir/stencil_kokkos.cpp.i
-.PHONY : stencil_kokkos.cpp.i
+stencil_kokkos_cpu.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_cpu.exe.dir/build.make CMakeFiles/stencil_kokkos_cpu.exe.dir/stencil_kokkos_cpu.cpp.i
+.PHONY : stencil_kokkos_cpu.cpp.i
 
-stencil_kokkos.s: stencil_kokkos.cpp.s
-.PHONY : stencil_kokkos.s
+stencil_kokkos_cpu.s: stencil_kokkos_cpu.cpp.s
+.PHONY : stencil_kokkos_cpu.s
 
 # target to generate assembly for a file
-stencil_kokkos.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos.exe.dir/build.make CMakeFiles/stencil_kokkos.exe.dir/stencil_kokkos.cpp.s
-.PHONY : stencil_kokkos.cpp.s
+stencil_kokkos_cpu.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_cpu.exe.dir/build.make CMakeFiles/stencil_kokkos_cpu.exe.dir/stencil_kokkos_cpu.cpp.s
+.PHONY : stencil_kokkos_cpu.cpp.s
+
+stencil_kokkos_gpu.o: stencil_kokkos_gpu.cpp.o
+.PHONY : stencil_kokkos_gpu.o
+
+# target to build an object file
+stencil_kokkos_gpu.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_gpu.exe.dir/build.make CMakeFiles/stencil_kokkos_gpu.exe.dir/stencil_kokkos_gpu.cpp.o
+.PHONY : stencil_kokkos_gpu.cpp.o
+
+stencil_kokkos_gpu.i: stencil_kokkos_gpu.cpp.i
+.PHONY : stencil_kokkos_gpu.i
+
+# target to preprocess a source file
+stencil_kokkos_gpu.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_gpu.exe.dir/build.make CMakeFiles/stencil_kokkos_gpu.exe.dir/stencil_kokkos_gpu.cpp.i
+.PHONY : stencil_kokkos_gpu.cpp.i
+
+stencil_kokkos_gpu.s: stencil_kokkos_gpu.cpp.s
+.PHONY : stencil_kokkos_gpu.s
+
+# target to generate assembly for a file
+stencil_kokkos_gpu.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/stencil_kokkos_gpu.exe.dir/build.make CMakeFiles/stencil_kokkos_gpu.exe.dir/stencil_kokkos_gpu.cpp.s
+.PHONY : stencil_kokkos_gpu.cpp.s
 
 stencil_omp.o: stencil_omp.cpp.o
 .PHONY : stencil_omp.o
@@ -236,14 +273,18 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... stencil_base.exe"
-	@echo "... stencil_kokkos.exe"
+	@echo "... stencil_kokkos_cpu.exe"
+	@echo "... stencil_kokkos_gpu.exe"
 	@echo "... stencil_omp.exe"
 	@echo "... stencil_base.o"
 	@echo "... stencil_base.i"
 	@echo "... stencil_base.s"
-	@echo "... stencil_kokkos.o"
-	@echo "... stencil_kokkos.i"
-	@echo "... stencil_kokkos.s"
+	@echo "... stencil_kokkos_cpu.o"
+	@echo "... stencil_kokkos_cpu.i"
+	@echo "... stencil_kokkos_cpu.s"
+	@echo "... stencil_kokkos_gpu.o"
+	@echo "... stencil_kokkos_gpu.i"
+	@echo "... stencil_kokkos_gpu.s"
 	@echo "... stencil_omp.o"
 	@echo "... stencil_omp.i"
 	@echo "... stencil_omp.s"

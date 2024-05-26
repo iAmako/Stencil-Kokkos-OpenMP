@@ -11,9 +11,13 @@ find_package(Kokkos REQUIRED)
 option(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE ON)
 option(Kokkos_ENABLE_CUDA_LAMBDA ON)
 
-add_executable(stencil_kokkos.exe stencil_kokkos.cpp )
+add_executable(stencil_kokkos_cpu.exe stencil_kokkos_cpu.cpp )
 # Link Kokkos and OpenCV to the executable
-target_link_libraries(stencil_kokkos.exe Kokkos::kokkos ${OpenCV_LIBS})
+target_link_libraries(stencil_kokkos_cpu.exe Kokkos::kokkos ${OpenCV_LIBS})
+
+add_executable(stencil_kokkos_gpu.exe stencil_kokkos_gpu.cpp )
+# Link Kokkos and OpenCV to the executable
+target_link_libraries(stencil_kokkos_gpu.exe Kokkos::kokkos ${OpenCV_LIBS})
 
 add_executable( stencil_omp.exe stencil_omp.cpp )
 target_link_libraries( stencil_omp.exe ${OpenCV_LIBS} )
