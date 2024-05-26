@@ -6,11 +6,11 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-
+#include <omp.h>
 using namespace std;
 using namespace cv;
 
-#define NITERS 2
+#define NITERS 30
 
 #define TASK_WIDTH 100
 #define TASK_HEIGHT 100
@@ -26,42 +26,58 @@ void jabobi_task(const int width, const int height, Mat &image, Mat &tmp_image)
   Vec3b Source_Pixel;
   Vec3b Des_Pixel;
   int Dest_Pixel_value;
-  int borne_width_up,borne_width_down;
+  int borne_height_up,borne_height_down;
   
-  //Génération des tâches 
-  for(int l = 0 ; l <= floor(width / TASK_WIDTH) ; l++ ){
 
-    #pragma omp task 
+
+ #pragma omp parallel 
+ {
+  //Génération des tâches
+
+    #pragma omp single nowait
     {
-      //Gestion de la dernière tâche
-      borne_width_up =  l == floor(width / TASK_WIDTH)?width+1:(l+1) * TASK_WIDTH;
+      //printf("Hello from %d \n",omp_get_thread_num());
+      for(int l = 0 ; l <= floor(height / TASK_HEIGHT) ; l++ ){
+        //printf("Hello from %d, creating task l = %d \n",omp_get_thread_num(),l);
 
-      //Gestion de la première tâche
-      borne_width_down = l == 0 ?1: l * TASK_WIDTH;
+        //Gestion de la dernière tâche
+          borne_height_up =  l == floor(height / TASK_HEIGHT)?height+1:(l+1) * TASK_HEIGHT;
 
-      for (int i = borne_width_down; i <  borne_width_up; ++i){
-        
-        for (int j = 1; j < height + 1; ++j){
+          //Gestion de la première tâche
+          borne_height_down = l == 0 ?1: l * TASK_HEIGHT;
 
-          Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
-          Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
-          Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
-          Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
-          Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
+        #pragma omp task shared(image,width,height,tmp_image) firstprivate(borne_height_up,borne_height_down)
+        {
+          //printf("Hello from %d l = %d \n",omp_get_thread_num(),l);
           
-          for (int k = 0; k < 3; k++){
-              Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
-              Des_Pixel[k] = Clamp(Dest_Pixel_value);
-              
-          }
-          tmp_image.at<Vec3b>(i,j) = Des_Pixel;
 
+          for (int i = 1; i <  width +1; ++i){
+            
+            for (int j = borne_height_down; j < borne_height_up; ++j){
+
+              Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
+              Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
+              Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
+              Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
+              Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
+              
+              //Calcul pour R G et B 
+              for (int k = 0; k < 3; k++){
+                  Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
+                  Des_Pixel[k] = Clamp(Dest_Pixel_value);
+                  
+              }
+              tmp_image.at<Vec3b>(i,j) = Des_Pixel;
+
+            }
+          }
         }
       }
+      #pragma omp taskwait
     }
+    
   }
-
-  #pragma omp taskwait
+  
 }
 
 void jabobi_target(const int width, const int height, Mat &image, Mat &tmp_image)
