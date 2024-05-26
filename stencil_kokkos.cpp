@@ -3,6 +3,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <Kokkos_Core.hpp>
+
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -10,7 +12,7 @@
 using namespace std;
 using namespace cv;
 
-#define NITERS 15
+#define NITERS 100
 
 // Define output file name
 #define OUTPUT_FILE "stencil.pgm"
@@ -21,42 +23,38 @@ inline uchar Clamp(int n)
     return n<0 ? 0 : n;
 }
 
-void stencil(const int width, const int height, Mat &image, Mat &tmp_image)
-{
-  Vec3b Source_Pixel;
-  Vec3b Des_Pixel;
-  int Dest_Pixel_value;
+void stencil(const int width, const int height, Kokkos::View<unsigned char***,Kokkos::HostSpace> &src_image, Kokkos::View<unsigned char***, Kokkos::HostSpace> &dst_image) {
 
-  for (int i = 1; i < width + 1; ++i)
-  {
-    
+    Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({1, 1}, {width + 1, height + 1});
 
-    for (int j = 1; j < height + 1; ++j)
-    {
+    Kokkos::parallel_for("Stencil Computation", policy, KOKKOS_LAMBDA(const int i, const int j) {
+        unsigned char Source_Pixel1[3], Source_Pixel2[3], Source_Pixel3[3], Source_Pixel4[3], Source_Pixel5[3];
+        unsigned char Des_Pixel[3];
+        int Dest_Pixel_value;
 
-      Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
-      Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
-      Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
-      Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
-      Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
-      
-      for (int k = 0; k < 3; k++)
-      {
-          Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
-          Des_Pixel[k] = Clamp(Dest_Pixel_value);
-          //if(i % 10 == 0) std::cout << Dest_Pixel_value << " " << Des_Pixel[k] << std::endl;
-          
-      }
-      tmp_image.at<Vec3b>(i,j) = Des_Pixel;
+        for (int k = 0; k < 3; k++) {
+            Source_Pixel1[k] = src_image(i - 1, j, k);
+            Source_Pixel2[k] = src_image(i, j - 1, k);
+            Source_Pixel3[k] = src_image(i, j, k);
+            Source_Pixel4[k] = src_image(i, j + 1, k);
+            Source_Pixel5[k] = src_image(i + 1, j, k);
 
-      //if(i % 10 == 0) std::cout << tmp_image.at<Vec3b>(i,j) << std::endl;
-    }
-  }
+            Dest_Pixel_value = Source_Pixel3[k] * 0.6 +
+                               ((Source_Pixel1[k] + Source_Pixel2[k] + Source_Pixel4[k] + Source_Pixel5[k]) * 0.1);
+            Des_Pixel[k] = Clamp(Dest_Pixel_value);
+        }
+
+        for (int k = 0; k < 3; k++) {
+            dst_image(i, j, k) = Des_Pixel[k];
+        }
+    });
 }
 
 
 int main(int argc, char** argv)
 {
+  Kokkos::initialize(argc, argv);
+  {
   CommandLineParser parser(argc, argv,
                               "{@input   |img/lena.jpg|input image}");
   parser.printMessage();
@@ -70,8 +68,6 @@ int main(int argc, char** argv)
       std::cout << "Aucune image passé, fermeture du programme" << std::endl;
       
       return -1;
-      // Crée une image par défaut pour des tests rapides 
-      //init_image(nx, ny, width, height, image, tmp_image);
   }
 
   int nx = image.cols;
@@ -92,28 +88,59 @@ int main(int argc, char** argv)
   // Create a buffer image with the specified dimensions, filled with zeros
   Mat tmp_image(height, width, image.type(), cv::Scalar(0, 0, 0));
 
+
+  // Convert cv::Mat to Kokkos view
+  Kokkos::View<unsigned char***, Kokkos::HostSpace> src_image("src_image", height + 2, width + 2, 3);
+  Kokkos::View<unsigned char***, Kokkos::HostSpace> dst_image("dst_image", height + 2, width + 2, 3);
+
+  for (int i = 0; i < height + 2; ++i) {
+      for (int j = 0; j < width + 2; ++j) {
+          Vec3b pixel = image_w_border.at<Vec3b>(i, j);
+          for (int k = 0; k < 3; ++k) {
+              src_image(i, j, k) = pixel[k];
+          }
+      }
+  }
+
+
   // Stencil
   // Start measuring time
   auto start = std::chrono::high_resolution_clock::now();
+  
   for(int i = 0; i < NITERS; ++i)
     {
-    stencil(ny, nx, image_w_border, tmp_image);
+    stencil(ny, nx, src_image, dst_image);
 
-    stencil(ny, nx, tmp_image, image_w_border);
+    stencil(ny, nx, dst_image, src_image);
 
   }
+
+  if(NITERS%2==1){
+    std::swap(src_image, dst_image);
+  }
+
+// Copy data from Kokkos view to cv::Mat
+for (int i = 1; i < height + 1; ++i) {
+    for (int j = 1; j < width + 1; ++j) {
+        Vec3b &pixel = image_w_border.at<Vec3b>(i, j);
+        for (int k = 0; k < 3; ++k) {
+            pixel[k] = dst_image(i, j, k);
+        }
+    }
+  }
+
   // Stop measuring time
   auto end = std::chrono::high_resolution_clock::now();
   
   // Calculate duration
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
   
   // Output the duration
   cout << "------------------------------------"<< std::endl;
   std::cout << "Execution time: " << duration.count() << " milliseconds" << std::endl;
   cout << "------------------------------------"<< std::endl;
 
-  // Retire le contour extérieur qu'on a ajouté de l'image 
   // Define the ROI coordinates to exclude the outer layer
   cv::Rect roi_rect(1, 1, image_w_border.cols - 2, image_w_border.rows - 2);
 
@@ -135,5 +162,8 @@ int main(int argc, char** argv)
     delete(image_w_border);
     delete(tmp_image);
     */
+
+  Kokkos::finalize();
+}
   return 0;
 }

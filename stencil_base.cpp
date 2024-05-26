@@ -70,8 +70,6 @@ int main(int argc, char** argv)
       std::cout << "Aucune image passé, fermeture du programme" << std::endl;
       
       return -1;
-      // Crée une image par défaut pour des tests rapides 
-      //init_image(nx, ny, width, height, image, tmp_image);
   }
 
   int nx = image.cols;
@@ -113,7 +111,6 @@ int main(int argc, char** argv)
   std::cout << "Execution time: " << duration.count() << " milliseconds" << std::endl;
   cout << "------------------------------------"<< std::endl;
 
-  // Retire le contour extérieur qu'on a ajouté de l'image 
   // Define the ROI coordinates to exclude the outer layer
   cv::Rect roi_rect(1, 1, image_w_border.cols - 2, image_w_border.rows - 2);
 
