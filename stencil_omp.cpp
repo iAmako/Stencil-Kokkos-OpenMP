@@ -10,10 +10,10 @@
 using namespace std;
 using namespace cv;
 
-#define NITERS 15
+#define NITERS 2
 
-// Define output file name
-#define OUTPUT_FILE "stencil.pgm"
+#define TASK_WIDTH 100
+#define TASK_HEIGHT 100
 
 inline uchar Clamp(int n)
 {
@@ -21,44 +21,89 @@ inline uchar Clamp(int n)
     return n<0 ? 0 : n;
 }
 
-void stencil(const int width, const int height, Mat &image, Mat &tmp_image)
+void jabobi_task(const int width, const int height, Mat &image, Mat &tmp_image)
 {
   Vec3b Source_Pixel;
   Vec3b Des_Pixel;
   int Dest_Pixel_value;
+  int borne_width_up,borne_width_down;
+  
+  //Génération des tâches 
+  for(int l = 0 ; l <= floor(width / TASK_WIDTH) ; l++ ){
 
-  for (int i = 1; i < width + 1; ++i)
-  {
-    
-
-    for (int j = 1; j < height + 1; ++j)
+    #pragma omp task 
     {
+      //Gestion de la dernière tâche
+      borne_width_up =  l == floor(width / TASK_WIDTH)?width+1:(l+1) * TASK_WIDTH;
 
-      Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
-      Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
-      Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
-      Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
-      Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
-      
-      for (int k = 0; k < 3; k++)
-      {
-          Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
-          Des_Pixel[k] = Clamp(Dest_Pixel_value);
-          //if(i % 10 == 0) std::cout << Dest_Pixel_value << " " << Des_Pixel[k] << std::endl;
+      //Gestion de la première tâche
+      borne_width_down = l == 0 ?1: l * TASK_WIDTH;
+
+      for (int i = borne_width_down; i <  borne_width_up; ++i){
+        
+        for (int j = 1; j < height + 1; ++j){
+
+          Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
+          Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
+          Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
+          Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
+          Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
           
-      }
-      tmp_image.at<Vec3b>(i,j) = Des_Pixel;
+          for (int k = 0; k < 3; k++){
+              Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
+              Des_Pixel[k] = Clamp(Dest_Pixel_value);
+              
+          }
+          tmp_image.at<Vec3b>(i,j) = Des_Pixel;
 
-      //if(i % 10 == 0) std::cout << tmp_image.at<Vec3b>(i,j) << std::endl;
+        }
+      }
     }
   }
+
+  #pragma omp taskwait
 }
+
+void jabobi_target(const int width, const int height, Mat &image, Mat &tmp_image)
+{
+  //Lancement sur un GPU
+  #pragma omp target
+  {
+      printf("Test \n");
+      Vec3b Source_Pixel;
+      Vec3b Des_Pixel;
+      int Dest_Pixel_value;
+
+
+        for (int i = 1; i <  width +1; ++i){
+          
+          for (int j = 1; j < height + 1; ++j){
+
+            Vec3b Source_Pixel1 = image.at<Vec3b>(i-1,j);
+            Vec3b Source_Pixel2 = image.at<Vec3b>(i,j-1);
+            Vec3b Source_Pixel3 = image.at<Vec3b>(i,j);
+            Vec3b Source_Pixel4 = image.at<Vec3b>(i,j+1);
+            Vec3b Source_Pixel5 = image.at<Vec3b>(i+1,j);
+            
+            for (int k = 0; k < 3; k++){
+                Dest_Pixel_value = Source_Pixel3.val[k] * 0.6 + ((Source_Pixel1.val[k]+Source_Pixel2.val[k]+Source_Pixel4.val[k]+Source_Pixel5.val[k]) * 0.1);
+                Des_Pixel[k] = Clamp(Dest_Pixel_value);
+                
+            }
+            tmp_image.at<Vec3b>(i,j) = Des_Pixel;
+
+        }
+      }
+    }
+}
+
 
 
 int main(int argc, char** argv)
 {
+  //Init d l'image en lecture
   CommandLineParser parser(argc, argv,
-                              "{@input   |img/lena.jpg|input image}");
+                              "{@input   |res/noised_res.jpg|input image}");
   parser.printMessage();
 
   String imageName = parser.get<String>("@input");
@@ -70,8 +115,7 @@ int main(int argc, char** argv)
       std::cout << "Aucune image passé, fermeture du programme" << std::endl;
       
       return -1;
-      // Crée une image par défaut pour des tests rapides 
-      //init_image(nx, ny, width, height, image, tmp_image);
+
   }
 
   int nx = image.cols;
@@ -92,16 +136,20 @@ int main(int argc, char** argv)
   // Create a buffer image with the specified dimensions, filled with zeros
   Mat tmp_image(height, width, image.type(), cv::Scalar(0, 0, 0));
 
+
+
   // Stencil
   // Start measuring time
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i < NITERS; ++i)
     {
-    stencil(ny, nx, image_w_border, tmp_image);
-
-    stencil(ny, nx, tmp_image, image_w_border);
+    jabobi_task(ny, nx, image_w_border, tmp_image);
+    jabobi_task(ny, nx, tmp_image, image_w_border);
 
   }
+
+
+
   // Stop measuring time
   auto end = std::chrono::high_resolution_clock::now();
   
@@ -121,14 +169,13 @@ int main(int argc, char** argv)
   cv::Mat new_image = image_w_border(roi_rect);
     
   // Write the image to a file
-  bool success = cv::imwrite("output_image.jpg", new_image);
+  bool success = cv::imwrite("res/output_image.jpg", new_image);
     
   if (!success) {
       std::cerr << "Failed to write image to file." << std::endl;
       return -1;
   }
     
-    std::cout << "Image successfully written to output_image.jpg" << std::endl;
     
     /*
     delete(image);
