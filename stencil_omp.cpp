@@ -10,7 +10,7 @@
 using namespace std;
 using namespace cv;
 
-#define NITERS 30
+#define NITERS 100
 
 #define TASK_WIDTH 100
 #define TASK_HEIGHT 100
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 {
   //Init d l'image en lecture
   CommandLineParser parser(argc, argv,
-                              "{@input   |res/noised_res.jpg|input image}");
+                              "{@input   |img/lena.jpg|input image}");
   parser.printMessage();
 
   String imageName = parser.get<String>("@input");
@@ -177,7 +177,6 @@ int main(int argc, char** argv)
   std::cout << "Execution time: " << duration.count() << " milliseconds" << std::endl;
   cout << "------------------------------------"<< std::endl;
 
-  // Retire le contour extérieur qu'on a ajouté de l'image 
   // Define the ROI coordinates to exclude the outer layer
   cv::Rect roi_rect(1, 1, image_w_border.cols - 2, image_w_border.rows - 2);
 
@@ -185,7 +184,7 @@ int main(int argc, char** argv)
   cv::Mat new_image = image_w_border(roi_rect);
     
   // Write the image to a file
-  bool success = cv::imwrite("res/output_image.jpg", new_image);
+  bool success = cv::imwrite("output_image.jpg", new_image);
     
   if (!success) {
       std::cerr << "Failed to write image to file." << std::endl;
